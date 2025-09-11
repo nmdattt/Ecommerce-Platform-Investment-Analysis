@@ -1,0 +1,532 @@
+---
+title: "[Group_13]_Project_LM_01.Rmd"
+author: 
+  - "22280003 - Phạm Bá Hoàng Anh"
+  - "22280009 - Nguyễn Minh Đạt"
+  - "22280015 - Lư Xuân Dương"
+  - "22280022 - Nguyễn Đức Hiệp"
+  - "22280059 - Lê Trọng Nghĩa"
+date: "`r Sys.Date()`"
+output: html_document
+---
+<div style="text-align: center;">
+# Project 01 - Phát triển bán hàng trên app mobile hay website
+</div>
+<div style="text-align: justify;">
+Tiệp tin Ecommerce_Customers.csv có dữ liệu của khách hàng mua quần áo trực tuyến. Cửa hàng cung cấp
+các buổi tư vấn về phong cách và quần áo tại cửa hàng. Khách hàng đến cửa hàng, gặp gỡ/làm việc với nhà
+tạo mẫu cá nhân, sau đó họ có thể về nhà và đặt mua quần áo họ muốn trên ứng dụng di động hoặc trang
+web.
+
+Công ty đang cố gắng quyết định xem nên tập trung nỗ lực vào trải nghiệm ứng dụng di động hay trang web
+của họ.
+
+Dữ liệu bao gồm một số thông tin của khoảng 500 khách hàng:
+
+- Email: địa chỉ email duy nhất xác định mỗi khách hàng.
+
+- Address: địa chỉ của khách hàng.
+
+- Avg. Session Length: trung bình thời gian tương tác.
+
+- Time on App: thời gian tương tác trên mobile app.
+
+- Time on Website: thời gian tương tác trên website.
+
+- Length of Membership: thời gian là khách hàng thành viên.
+
+- Yearly Amount Spent: chi phí mua hàng trung bình năm.
+ 
+
+### Load dữ liệu
+```{r}
+# Khai báo các thư viện
+library(tidyverse)
+library(readr)
+
+# Đọc file csv
+data <- read.csv(file = "D:/Ecommerce_Customers.csv")
+data <- data |> janitor::clean_names() # Chuyển tên các cột về chữ thường
+glimpse(data)
+```
+## Sau khi load dữ liệu thực hiện một bản báo cáo cho nhà quản lý và phát triển của công ty, với các nội dung như sau:
+### 1. Bảng tóm tắt, khái quát về dữ liệu.
+* Xóa các cột không cần thiết:
+```{r}
+data <- data[, !names(data) %in% c("email", "address", "avatar")] 
+```
+
+* Kiểm tra data có bị thiếu giá trị không:
+```{r}
+# Kiểm tra dữ liệu bị thiếu
+sum(is.na(data))
+
+# Vẽ biểu đồ xác định phầm trăm dữ liệu bị thiếu
+library(VIM)
+aggr(data, ylab = c("Proportion of missings", "Pattern"), number = TRUE,
+     cex.axis = 0.6, cex.numbers = 0.5)
+```
+
+* Bảng tóm tắt và khái quát về dữ liệu:
+```{r}
+# Tính toán thống kê tóm tắt
+summary_table <- data %>%
+  reframe(
+    Bien = c("avg_session_length", "time_on_app", "time_on_website", "length_of_membership", "yearly_amount_spent"),
+    n = n(),
+    Trung_binh = c(mean(avg_session_length), mean(time_on_app), mean(time_on_website), mean(length_of_membership), mean(yearly_amount_spent)),
+    Trung_vi = c(median(avg_session_length), median(time_on_app), median(time_on_website), median(length_of_membership), median(yearly_amount_spent)),
+    Min = c(min(avg_session_length), min(time_on_app), min(time_on_website), min(length_of_membership), min(yearly_amount_spent)),
+    Max = c(max(avg_session_length), max(time_on_app), max(time_on_website), max(length_of_membership), max(yearly_amount_spent)),
+  )
+
+# Hiển thị bảng
+library(knitr)
+kable(summary_table, col.names = c("Biến", "Số lượng ", "Trung bình", "Trung vị", "Min", "Max"), align = "c")
+```
+
+Nhận xét: Trung bình và trung vị gần nhau, chứng tỏ phân phối khá cân đối. Khoảng giá trị min, max khá hẹp (ngoại trừ cột yearly_amount_spent) do đó không xuất hiện giá trị ngoại lai (outliers).
+
+* Kiểm tra giá trị ngoại lai outlier của cột yearly_amount_spent:
+```{r}
+# Tính các giá trị IQR
+Q1 = quantile(data$yearly_amount_spent, 0.25)
+Q3 = quantile(data$yearly_amount_spent, 0.75)
+IQR = Q3 - Q1
+
+# Giá trị ngưỡng
+lower_bound = Q1 - 1.5 * IQR
+upper_bound = Q3 + 1.5 * IQR
+
+data <- data[data$yearly_amount_spent >= lower_bound & data$yearly_amount_spent <= upper_bound, ]
+```
+
+* Bảng tóm tắt và khái quát về dữ liệu sau khi kiểm tra và xử lí giá trị ngoại lai (outliers) của cột yearly_amount_spent:
+```{r}
+# Tính toán thống kê tóm tắt
+summary_table <- data %>%
+  reframe(
+    Biến = c("avg_session_length", "time_on_app", "time_on_website", "length_of_membership", "yearly_amount_spent"),
+        n = n(),
+    Trung_bình = c(mean(avg_session_length), mean(time_on_app), mean(time_on_website), mean(length_of_membership), mean(yearly_amount_spent)),
+    Trung_vị = c(median(avg_session_length), median(time_on_app), median(time_on_website), median(length_of_membership), median(yearly_amount_spent)),
+    Min = c(min(avg_session_length), min(time_on_app), min(time_on_website), min(length_of_membership), min(yearly_amount_spent)),
+    Max = c(max(avg_session_length), max(time_on_app), max(time_on_website), max(length_of_membership), max(yearly_amount_spent)),
+  )
+
+# Hiển thị bảng
+library(knitr)
+kable(summary_table, col.names = c("Biến", "Số lượng", "Trung bình", "Trung vị", "Min", "Max"), align = "c")
+```
+
+* Heatmap mối tương quan giữa các biến
+```{r}
+library(reshape2)
+cor_matrix <- cor(data %>% select_if(is.numeric)) # Chọn các biến số
+ggplot(melt(cor_matrix), aes(Var1, Var2, fill = value)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, 
+                       limit = c(-1, 1), space = "Lab", 
+                       name = "Correlation") +
+  theme_minimal() +
+  labs(title = "Ma trận tương quan", x = "", y = "") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+```
+
+Nhận xét: yearly_amount_spent có mối tương quan cao nhất với length_of_membership, thể hiện qua màu đỏ đậm (hệ số tương quan dương lớn). Điều này cho thấy thời gian là thành viên càng lâu, khách hàng càng chi tiêu nhiều hơn hàng năm. yearly_amount_spent cũng có tương quan tích cực nhưng thấp hơn với time_on_app và avg_session_length. Mối tương quan giữa yearly_amount_spent và time_on_website là khá yếu, gần như không đáng kể.
+
+### 2. Thời gian tương tác trên 2 nền tảng có khác biệt (có thể thử khai thác theo góc nhìn về thời gian là khách hàng thành viên)?
+* Tương tác theo nhóm length_of_membership
+```{r}
+# Chia nhóm dựa trên phân vị
+data <- data %>%
+  mutate(membership_group = case_when(
+    length_of_membership <= quantile(length_of_membership, 0.33) ~ "Low",
+    length_of_membership > quantile(length_of_membership, 0.33) & 
+      length_of_membership <= quantile(length_of_membership, 0.66) ~ "Medium",
+    TRUE ~ "High"
+  ))
+
+# Chuyển đổi dữ liệu để sử dụng facet
+data_long <- data %>%
+  pivot_longer(cols = c(time_on_app, time_on_website),
+               names_to = "Metric",
+               values_to = "Time")
+
+# Tạo biểu đồ với facet_wrap
+ggplot(data_long, aes(x = membership_group, y = Time, fill = membership_group)) +
+  geom_boxplot() +
+  facet_wrap(~Metric, scales = "free_y") +
+  labs(title = "Thời gian tương tác theo nhóm Length of Membership",
+       x = "Nhóm Length of Membership",
+       y = "Thời gian") +
+  theme_minimal()
+```
+
+Nhận xét: Dựa vào biểu đồ boxplot trên, ta thấy rằng thời gian tương tác trên ứng dụng (time_on_app) và thời gian tương tác trên website (time_on_website) có một số khác biệt. Nhóm Length of Membership có thời gian tương tác trên ứng dụng (khoảng 11-13 đơn vị) thấp hơn đáng kể so với thời gian tương tác trên website (khoảng 36-38 đơn vị). Vì vậy, có thể nói rằng thời gian tương tác của các Nhóm Length of Membership có sự khác biệt giữa ứng dụng và website.
+
+### 3. Lựa chọn biến Y để xây dựng mô hình cho thấy nên đầu tư vào nền tảng mobile app hay website.
+Lựa chọn biến Y là yearly_amount_spent để xây dựng mô hình cho thấy nên đầu tư vào nền tảng mobile app hay website.
+
+```{r}
+md_data <- lm(yearly_amount_spent ~ avg_session_length + time_on_app + time_on_website + length_of_membership, data = data)
+```
+
+```{r}
+summary(md_data)
+```
+
+* Áp dụng phương pháp bootstrap để ước lượng khoảng tin cậy và kiểm định giả thuyết βj = 0
+```{r}
+library(boot)
+fun_boot_md <- function(data, ind, formula) {
+  data_new <- data[ind, ]               # Lấy mẫu từ dữ liệu gốc
+  model <- lm(formula = formula, data = data_new)  # Hồi quy tuyến tính
+  return(coef(model))                   # Trả về hệ số hồi quy
+}
+
+# Áp dụng bootstrapping
+set.seed(84)  # Đảm bảo tính tái lập
+out_boot <- boot(data = data, 
+                 statistic = fun_boot_md, 
+                 R = 1000,  # Số lần bootstrapping
+                 formula = yearly_amount_spent ~ avg_session_length + 
+                           time_on_app + time_on_website + length_of_membership)
+
+# Kết quả bootstrapping
+print(out_boot)
+```
+
+* Khoảng tin cậy cho hệ số của intercept:
+```{r}
+boot.ci(out_boot, index = 1, type = "perc", conf = 0.95)
+```
+
+* Khoảng tin cậy cho hệ số của avg_session_length:
+```{r}
+boot.ci(out_boot, index = 2, type = "perc", conf = 0.95)
+```
+
+* Khoảng tin cậy cho hệ số của time_on_app:
+```{r}
+boot.ci(out_boot, index = 3, type = "perc", conf = 0.95)
+```
+
+* Khoảng tin cậy cho hệ số của time_on_website:
+```{r}
+boot.ci(out_boot, index = 4, type = "perc", conf = 0.95)
+```
+
+* Khoảng tin cậy cho hệ số của length_of_membership:
+```{r}
+boot.ci(out_boot, index = 5, type = "perc", conf = 0.95)
+```
+
+```{r}
+# Tính p-value từ kết quả bootstrap
+pvals <- sapply(1:ncol(out_boot$t), function(x) {
+  qt0 <- mean(out_boot$t[, x] <= 0)  # Tỷ lệ bootstrap < 0
+  if (qt0 < 0.5) {
+    return(2 * qt0)  # P-value nếu phần lớn bootstrap > 0
+  } else {
+    return(2 * (1 - qt0))  # P-value nếu phần lớn bootstrap < 0
+  }
+})
+
+# Hiển thị p-values cho từng hệ số
+pvals
+```
+
+Nhận xét: Từ đây ta thấy, p-value của time_on_website = 0.354 > 0.05. Do vậy, nó không có ý nghĩa thống kê, tức là nó không có ảnh hưởng gì tới mô hình. Để chắc chắn thêm, ta sẽ dùng biểu đồ để thể hiện sự tương án giữa biến time_on_website và yearly_amount_spent và phương pháp dùng tập con tốt nhất cross vadation.
+
+
+```{r}
+terms_md_data <- predict(md_data, type = "terms")
+head(terms_md_data)
+partial_resid_md_data <- residuals(md_data, type = "partial")
+
+# Kiểm tra cấu trúc của terms_md_data và partial_resid_md_data
+str(terms_md_data)  # Đảm bảo có cột time_on_website
+str(partial_resid_md_data)  # Kiểm tra nếu partial_resid_md_data có cột time_on_website
+
+# Tạo data frame cho residuals và terms
+data_part_resid_time_on_website <- tibble(
+  time_on_website = data$time_on_website,
+  terms_time_on_website = terms_md_data[, "time_on_website"],  # Chắc chắn rằng "time_on_website" là cột hợp lệ
+  partial_resid_time_on_website = partial_resid_md_data[, "time_on_website"]  # Kiểm tra lại cách truy cập vào cột này
+)
+
+# Vẽ đồ thị với ggplot
+ggplot(data_part_resid_time_on_website, mapping = aes(time_on_website, partial_resid_time_on_website)) +
+  geom_point() +
+  geom_smooth(method = "loess", se = FALSE, linetype = "dashed", color = "forestgreen") +
+  geom_line(aes(x = time_on_website, y = terms_time_on_website), color = "blue") +
+  labs(x = "time_on_website", y = "Partial Residuals") +
+  theme_bw()
+
+```
+
+Nhận xét: ta thấy, time_on_website không có sự tương quan giữa yearly_amount_spent.
+
+```{r}
+library(leaps)
+
+# Định nghĩa hàm predict cho regsubsets
+predict_regsubsets <- function(object, newdata, id_model) {
+  # Lấy các biến từ mô hình
+  model_vars <- names(coef(object, id_model))
+  model_vars <- model_vars[model_vars != "(Intercept)"]
+  
+  # Tạo ma trận thiết kế X từ newdata
+  X <- model.matrix(as.formula(paste("~", paste(model_vars, collapse = "+"))), newdata)
+  
+  # Tính toán giá trị dự đoán
+  coef_values <- coef(object, id_model)
+  predictions <- X %*% coef_values
+  return(as.vector(predictions))
+}
+
+# Cross-validation
+set.seed(123) # Đảm bảo kết quả tái lập
+k <- 10 # Số folds
+folds <- sample(1:k, nrow(data), replace = TRUE)
+
+# Ma trận lưu lỗi dự đoán
+cv_error_data_rj <- matrix(0, nrow = k, ncol = 4)
+
+for (r in 1:k) {
+  # Tách dữ liệu thành tập huấn luyện và kiểm tra
+  data_train_r <- data[folds != r, ]
+  data_test_r <- data[folds == r, ]
+  
+  # Chạy regsubsets trên tập huấn luyện
+  out_subset_data_folds <- regsubsets(
+    yearly_amount_spent ~ avg_session_length + time_on_app + time_on_website + length_of_membership,
+    data = data_train_r,
+    method = "exhaustive",
+    nvmax = 4
+  )
+  
+  # Duyệt qua các số lượng biến (id_model)
+  for (j in 1:4) {
+    pred_rj <- predict_regsubsets(out_subset_data_folds, newdata = data_test_r, id_model = j)
+    cv_error_data_rj[r, j] <- sqrt(mean((data_test_r$yearly_amount_spent - pred_rj)^2))
+  }
+}
+
+# Trung bình lỗi dự đoán qua các folds
+cv_error_mean <- colMeans(cv_error_data_rj)
+cv_error_mean
+```
+
+```{r}
+# Tính trung bình lỗi RMSE cho từng mô hình
+cv_error_data <- colMeans(cv_error_data_rj)
+
+# Kết quả: Mô hình với lỗi thấp nhất
+best_model <- which.min(cv_error_data)
+print(paste("Model tốt nhất có", best_model, "biến dự đoán với hệ số RMSE =", round(min(cv_error_data), 4)))
+
+
+# Lấy các hệ số của mô hình có id_model = best_model
+coef_best_model <- coef(out_subset_data_folds, id = best_model)
+
+# Lấy các biến được chọn (các biến có hệ số khác 0)
+selected_vars <- names(coef_best_model)[coef_best_model != 0]
+
+# In ra các biến con tốt nhất
+print("Model tốt nhất sử dụng các biến sau:")
+print(selected_vars)
+```
+Vậy ta sẽ dùng 3 biến avg_session_length, time_on_app và length_of_membership để dùng cho model.
+
+* Chuẩn đoán mô hình:
+```{r}
+md_data <- lm(yearly_amount_spent ~ avg_session_length + time_on_app + length_of_membership, data = data)
+```
+
+Xét sự đồng nhất phương sai:
+```{r}
+ggplot(md_data, aes(.fitted, sqrt(abs(.stdresid)))) +
+geom_point(na.rm = TRUE) +
+geom_smooth(method = "loess", na.rm = TRUE, se = FALSE) +
+labs(x = "Fitted Values", y = expression(sqrt("|Standardized residuals|"))) +
+theme_bw()
+```
+
+Nhận xét: Dựa vào biểu đồ trên, ta thấy có sự đồng nhất phương sai.
+
+Sự tuyến tính của từng biến đối với biến mục tiêu yearly_amount_spent:
+```{r}
+data_part_resid_avg_md_data <- tibble(
+avg_session_length = data$avg_session_length,
+terms_avg_session_length = terms_md_data[, "avg_session_length"],
+partial_resid_avg_session_length = partial_resid_md_data[, "avg_session_length"]
+)
+
+ggplot(data_part_resid_avg_md_data, mapping = aes(avg_session_length, partial_resid_avg_session_length)) +
+geom_point() +
+geom_smooth(method = "loess", se = FALSE, linetype = "dashed",
+color = "forestgreen") +
+geom_line(aes(x = avg_session_length, y = terms_avg_session_length), color = "blue") +
+labs(x = "avg_session_length", y = "Partial Residuals") +
+theme_bw()
+
+# Partial residuals plot for time_on_app
+data_part_resid_time_on_app <- tibble(
+  time_on_app = data$time_on_app,
+  terms_time_on_app = terms_md_data[, "time_on_app"],
+  partial_resid_time_on_app = partial_resid_md_data[, "time_on_app"]
+)
+
+ggplot(data_part_resid_time_on_app, mapping = aes(time_on_app, partial_resid_time_on_app)) +
+  geom_point() +
+  geom_smooth(method = "loess", se = FALSE, linetype = "dashed", color = "forestgreen") +
+  geom_line(aes(x = time_on_app, y = terms_time_on_app), color = "blue") +
+  labs(x = "time_on_app", y = "Partial Residuals") +
+  theme_bw()
+# Partial residuals plot for length_of_membership
+data_part_resid_length_of_membership <- tibble(
+  length_of_membership = data$length_of_membership,
+  terms_length_of_membership = terms_md_data[, "length_of_membership"],
+  partial_resid_length_of_membership = partial_resid_md_data[, "length_of_membership"]
+)
+
+ggplot(data_part_resid_length_of_membership, mapping = aes(length_of_membership, partial_resid_length_of_membership)) +
+  geom_point() +
+  geom_smooth(method = "loess", se = FALSE, linetype = "dashed", color = "forestgreen") +
+  geom_line(aes(x = length_of_membership, y = terms_length_of_membership), color = "blue") +
+  labs(x = "length_of_membership", y = "Partial Residuals") +
+  theme_bw()
+```
+
+Nhận xét: Dựa vào 3 biểu đồ trên, ta thấy cả 3 biến đều có sự tuyến tính với biến mục tiêu yearly_amount_spent.
+
+Vậy ta sẽ bỏ cột time_on_website khỏi data:
+```{r}
+data <- data[, !names(data) %in% c("time_on_website")] 
+```
+
+
+Xét cả giá trị ngoại lai:
+```{r}
+ggplot(md_data, aes(.hat, .stdresid)) +
+geom_point(aes(size = .cooksd)) +
+xlab("Leverage") + ylab("Standardized Residuals") +
+scale_size_continuous("Cook's Distance", range = c(1, 6)) +
+theme_bw() +
+theme(legend.position = "bottom")
+```
+```{r}
+std_resid_md_data <- rstandard(md_data)
+hat_values_md_data <- hatvalues(md_data)
+cooks_D_md_data <- cooks.distance(md_data)
+
+data_cooks_md_data <- tibble(id_point = 1:nrow(data),
+rstand = std_resid_md_data, hats = hat_values_md_data,
+cooks = cooks_D_md_data, sales = data$yearly_amount_spent)
+data_cooks_md_data |> arrange(desc(cooks))
+```
+
+
+```{r}
+# Lọc các điểm ngoại lai dựa trên ngưỡng
+outliers <- data_cooks_md_data |>
+  filter(abs(rstand) > 2 | cooks > 0.5)
+
+# Hiển thị các điểm ngoại lai
+print(outliers)
+
+# Trích xuất các điểm ngoại lai từ dữ liệu gốc
+data_outliers <- data[outliers$id_point, ]
+print(data_outliers)
+```
+
+* Tiên đoán dựa trên mô hình:
+```{r}
+# Gói cần thiết
+set.seed(123)  # Đặt seed để tái tạo kết quả
+library(caret)
+
+# Chia dữ liệu thành tập train (70%) và test (30%)
+index <- createDataPartition(data$yearly_amount_spent, p = 0.7, list = FALSE)
+train_data <- data[index, ]
+test_data <- data[-index, ]
+
+# Xây dựng mô hình trên tập train
+md_data <- lm(yearly_amount_spent ~ avg_session_length + time_on_app + length_of_membership, data = train_data)
+
+# Tiên đoán trên tập test
+test_predictions <- predict(md_data, newdata = test_data)
+
+# Tính sai số thực tế và dự đoán trên tập test
+test_errors <- test_data$yearly_amount_spent - test_predictions
+
+# Đánh giá mô hình trên tập test
+MSE_test <- mean(test_errors^2)
+RMSE_test <- sqrt(MSE_test)
+RSS_test <- sum(test_errors^2)
+n_test <- nrow(test_data)
+p <- length(coef(md_data)) - 1
+RSE_test <- sqrt(RSS_test / (n_test - p - 1))
+R2_test <- 1 - (RSS_test / sum((test_data$yearly_amount_spent - mean(test_data$yearly_amount_spent))^2))
+
+# Hiển thị kết quả đánh giá
+cat("MSE (Test):", MSE_test, "\n")
+cat("RMSE (Test):", RMSE_test, "\n")
+cat("R^2 (Test):", R2_test, "\n")
+cat("RSE (Test):", RSE_test, "\n")
+```
+
+Nhận xét: Ta thấy RMSE và RSE gần bằng nhau và  R^2 khá cao (~ 0.98). Do đó, mô hình của ta khá tốt.
+
+* Mở rộng mô hình bằng phương pháp GAM với biến time_on_app:
+```{r}
+library(mgcv)
+md_adv_gam = gam(yearly_amount_spent ~ s(time_on_app, k= 5) + length_of_membership + avg_session_length, data = data)
+
+summary(md_adv_gam)
+terms_md_adv_gam <- predict(md_adv_gam, type = "terms")
+head(terms_md_adv_gam)
+
+partial_resid_md_adv_gam <- residuals(md_adv_gam, type = "working") +
+  terms_md_adv_gam
+head(partial_resid_md_adv_gam)
+
+
+library(mgcViz)
+viz_md_adv <- getViz(md_adv_gam)
+print(plot(viz_md_adv, allTerms = T), pages = 1)
+
+data_part_resid_toa_md_adv <- tibble(
+  toa = data$time_on_app,
+  terms_toa = terms_md_adv_gam[, "s(time_on_app)"],
+  partial_resid_toa = partial_resid_md_adv_gam[, "s(time_on_app)"]
+)
+
+
+  ggplot(data_part_resid_toa_md_adv, mapping = aes(toa, partial_resid_toa)) +
+  geom_point() +
+  geom_smooth(method = "loess", se = FALSE, linetype = "dashed",
+              color = "forestgreen") +
+  geom_line(aes(x = toa, y = terms_toa), color = "blue") +
+  labs(x = "time_on_app", y= "Partial Residuals") +
+    theme_bw()
+```
+
+Nhận xét: R^2 không có thay đổi nhiều nên chúng ta không cần mở rộng mô hình.
+
+### 4. Viết các nhận xét và kết luận:
+Nhận xét: Để làm cho mô hình dự đoán tốt nhất thì ta xóa bỏ biến time_on_website và ta cũng không cần mở rộng thêm biến của mô hình.
+
+
+Kết luận:
+
+- Nền tảng nên đầu tư: time_on_app có hệ số hồi quy cao và ý nghĩa thống kê mạnh, trong khi time_on_website không có ý nghĩa thống kê. Do đó, công ty nên tập trung đầu tư vào ứng dụng di động để tăng chi tiêu trung bình của khách hàng.
+
+- Chiến lược giữ chân khách hàng: length_of_membership có tác động mạnh đến chi tiêu. Công ty nên đầu tư vào các chương trình khách hàng thân thiết để kéo dài thời gian là thành viên.
+
+- Hạn chế: Thời gian tương tác trên website có vẻ không có ảnh hưởng lớn, nhưng cần kiểm tra thêm các yếu tố khác như chất lượng trải nghiệm hoặc chức năng cụ thể của website.
+
+- Khuyến khích cải thiện: Cải thiện giao diện người dùng và tính năng trên ứng dụng di động. Xây dựng chương trình ưu đãi hoặc giảm giá để khuyến khích khách hàng sử dụng ứng dụng nhiều hơn.
+</div>
