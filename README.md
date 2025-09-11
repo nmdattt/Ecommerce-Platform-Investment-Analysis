@@ -1,4 +1,4 @@
-# Project - Phát triển bán hàng trên app mobile hay website
+# Phát triển bán hàng trên app mobile hay website - R Project
 
 ## Mô tả
 Dự án này phân tích bộ dữ liệu Ecommerce_Customers.csv về hành vi khách hàng khi mua quần áo trực tuyến, nhằm giúp công ty quyết định nên tập trung phát triển nền tảng mobile app hay website.
