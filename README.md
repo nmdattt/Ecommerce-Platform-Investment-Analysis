@@ -27,8 +27,8 @@ Ecommerce-Platform-Investment-Analysis/
 
 ## Thành viên nhóm
 
-- 22280003 - Phạm Bá Hoàng Anh
-- 22280009 - Nguyễn Minh Đạt
-- 22280015 - Lư Xuân Dương
-- 22280022 - Nguyễn Đức Hiệp
-- 22280059 - Lê Trọng Nghĩa
+- Phạm Bá Hoàng Anh
+- Nguyễn Minh Đạt
+- Lư Xuân Dương
+- Nguyễn Đức Hiệp
+- Lê Trọng Nghĩa
