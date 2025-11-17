@@ -1,5 +1,5 @@
 ---
-title: "[Group_13]_Project_LM_01.Rmd"
+title: "Project.Rmd"
 author: "22280009 - Nguyễn Minh Đạt"
 date: "`r Sys.Date()`"
 output: html_document
@@ -524,4 +524,5 @@ Kết luận:
 - Hạn chế: Thời gian tương tác trên website có vẻ không có ảnh hưởng lớn, nhưng cần kiểm tra thêm các yếu tố khác như chất lượng trải nghiệm hoặc chức năng cụ thể của website.
 
 - Khuyến khích cải thiện: Cải thiện giao diện người dùng và tính năng trên ứng dụng di động. Xây dựng chương trình ưu đãi hoặc giảm giá để khuyến khích khách hàng sử dụng ứng dụng nhiều hơn.
+
 </div>
