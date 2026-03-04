@@ -20,7 +20,7 @@ The dataset includes 1,000 observations with variables such as:
 The dataset represents customer engagement and spending patterns for an online retail business.
 
 ## Data Cleaning & Preprocessing
-Data cleaning was performed using `tidyverse`, `janitor`, `VIM`, and custom preprocessing steps in R.
+Data cleaning was performed using `tidyverse`, `janitor`, `VIM`, and custom preprocessing steps in Python.
 
 ### 1. Standardized & validated data
 * Renamed all variables using `clean_names()`
