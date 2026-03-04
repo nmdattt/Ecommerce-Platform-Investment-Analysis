@@ -3,7 +3,7 @@
 ## Overview
 This project analyzes customer behavior from the `Ecommerce_Customers.csv` dataset to determine whether the company should prioritize investment in mobile app or website development.
 
-Using R, the analysis covers data cleaning, exploratory data analysis (EDA), statistical testing, linear modeling, GAM modeling, feature selection, and cross-validation to uncover which platform (App vs. Website) contributes more to customer spending.
+Using Python, the analysis covers data cleaning, exploratory data analysis (EDA), statistical testing, linear modeling, GAM modeling, feature selection, and cross-validation to uncover which platform (App vs. Website) contributes more to customer spending.
 
 The final conclusion is based on validated statistical evidence and multiple regression models.
 
