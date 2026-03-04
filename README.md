@@ -1,4 +1,4 @@
-# Ecommerce Platform Investment Analysis – R Project
+# Ecommerce Platform Investment Analysis Project
 
 ## Overview
 This project analyzes customer behavior from the `Ecommerce_Customers.csv` dataset to determine whether the company should prioritize investment in mobile app or website development.
