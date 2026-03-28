@@ -59,45 +59,29 @@ EDA was performed using `ggplot2`, smoothing functions, and grouped visualizatio
 * Website engagement is flatter and less predictive.
 
 ## Modeling & Statistical Analysis
-Multiple modeling approaches were implemented using `leaps`, `mgcv`, `caret`, and base R methods.
+The predictive modeling phase was implemented using Python's scikit-learn to build, train, and evaluate a Multiple Linear Regression model.
 
-### 1. Linear Model (LM)
-* Built several linear regression models:
-    * Full model with all predictors
-    * Reduced models using variable selection
-* Checked model assumptions (linearity, normality, VIF, residual patterns)
+### 1. Data Splitting & Model Training
+* Split the dataset into training and testing sets (`train_test_split`) to ensure objective evaluation on unseen data.
+* Built a Linear Regression model using features including `Time_on_App`, `Time_on_Website`, `Length_of_Membership`, and `Avg_Session_Length`.
+* Checked model assumptions by visualizing the normal distribution of residuals using `seaborn`.
 
-**Result:**
-* `Time_on_App` is statistically significant and strongly predictive of spending.
-* `Time_on_Website` is weaker and often not significant.
+**Result**:
+* `Time_on_App` is a statistically significant feature and strongly predictive of customer spending.
+* `Time_on_Website` has minimal impact on the model's predictive power.
 
-### 2. Best Subset Selection (`leaps`)
-* Explored multiple predictor combinations.
-* Compared models via Adjusted R², Cp, BIC
-* Selected the most efficient model
+### 2. Coefficients Analysis (Feature Impact)
+* Extracted the model's coefficients to quantify the exact business impact of each platform.
 
-**Result:**
-Topology of best models consistently includes:
-* `Time_on_App`
-* `Length_of_Membership`
-* `Time_on_Website` (frequently excluded)
+**Result**:
+* The model mathematically proves the superiority of the mobile app: a one-unit increase in `Time_on_App` is associated with an increase of $38.59 in `Yearly_Amount_Spent`, whereas a one-unit increase in `Time_on_Website` only yields an increase of $0.19.
 
-### 3. Generalized Additive Model (GAM)
-* Used `mgcv` and `mgcViz` to capture nonlinear trends.
-* Fitted GAM with smooth terms `s(Time_on_App)`
-* Checked visualization & significance of smoothing terms
+### 3. Model Evaluation
+* Evaluated the model's performance on the test data to verify its reliability.
+* Calculated standard regression metrics: Mean Absolute Error (MAE), Mean Squared Error (MSE), Root Mean Squared Error (RMSE), and Explained Variance Score (R²).
 
-**Result:**
-* `Time_on_App` shows a strong nonlinear positive effect on spending.
-* `Time_on_Website` remained nearly flat.
-
-### 4. Cross-validation (`caret`)
-* Performed K-fold CV to evaluate model performance.
-* Metrics: RMSE, MAE, R²
-* Compared LM vs GAM vs Best Subset models
-
-**Result:**
-Models containing `Time_on_App` consistently outperform others.
+**Result**:
+* The model achieved a very high R² score (approx. 98%), confirming that the selected features (especially `Time_on_App` and `Length_of_Membership`) reliably and accurately explain the variance in customer spending.
 
 ## Final Conclusion
 Across all analyses — EDA, hypothesis testing, linear regression, GAM, and cross-validation:
