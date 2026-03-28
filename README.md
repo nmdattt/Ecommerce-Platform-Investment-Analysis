@@ -26,11 +26,11 @@ Data cleaning and preprocessing were performed using Python's pandas and numpy l
 * Checked dataframe structure using `.info()` and `.describe()` to understand data types and summary statistics.
 * Verified missingness and ensured data completeness using `.isnull()`.
 
-2. Outlier & distribution analysis
+### 2. Outlier & distribution analysis
 * Visualized data distributions using histograms and distplots.
 * Verified linearity assumptions for regression modeling.
 
-3. Multicollinearity & correlation
+### 3. Multicollinearity & correlation
 * Built correlation matrices and pairwise scatterplots (`sns.pairplot`).
 * Confirmed a strong relationship between `Length_of_Membership` and `Yearly_Amount_Spent`.
 * Identified a moderate correlation between `Time_on_App` and `Yearly_Amount_Spent`.
