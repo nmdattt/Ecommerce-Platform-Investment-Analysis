@@ -110,10 +110,7 @@ Across all analyses — EDA, hypothesis testing, linear regression, GAM, and cro
 * Encourage customers to migrate to or increase activity on the mobile app for higher spending potential.
 
 ## Tools & Libraries Used
-* `tidyverse` (data cleaning, transformation)
-* `janitor` (variable standardization)
-* `VIM` (missing data analysis)
-* `ggplot2` (visualization)
-* `leaps` (best subset modeling)
-* `mgcv`, `mgcViz` (GAM modeling)
-* `caret` (cross-validation & model evaluation)
+* `pandas` (Data manipulation, cleaning, and handling missing data)
+* `numpy` (Numerical computations and array operations)
+* `matplotlib` & `seaborn` (Exploratory data analysis and statistical visualization)
+* `scikit-learn` (Machine learning: Linear Regression modeling, cross-validation, and model evaluation)
