@@ -3,9 +3,9 @@
 ## Overview
 This project analyzes customer behavior from the `Ecommerce_Customers.csv` dataset to determine whether the company should prioritize investment in mobile app or website development.
 
-Using Python, the analysis covers data cleaning, exploratory data analysis (EDA), statistical testing, linear modeling, GAM modeling, feature selection, and cross-validation to uncover which platform (App vs. Website) contributes more to customer spending.
+Using Python, the analysis covers data cleaning, exploratory data analysis (EDA), and Multiple Linear Regression modeling to uncover which platform (App vs. Website) contributes more to customer spending.
 
-The final conclusion is based on validated statistical evidence and multiple regression models.
+The final conclusion is based on validated statistical evidence and coefficient analysis.
 
 ## Dataset
 The dataset includes 1,000 observations with variables such as:
@@ -20,43 +20,38 @@ The dataset includes 1,000 observations with variables such as:
 The dataset represents customer engagement and spending patterns for an online retail business.
 
 ## Data Cleaning & Preprocessing
-Data cleaning was performed using `tidyverse`, `janitor`, `VIM`, and custom preprocessing steps in Python.
+Data cleaning and preprocessing were performed using Python's pandas and numpy libraries.
 
 ### 1. Standardized & validated data
-* Renamed all variables using `clean_names()`
-* Checked structure (`str()`), summaries, and missing patterns
-* Used `VIM::aggr()` to verify missingness and ensure data completeness
+* Checked dataframe structure using `.info()` and `.describe()` to understand data types and summary statistics.
+* Verified missingness and ensured data completeness using `.isnull()`.
 
-### 2. Outlier & distribution analysis
-* Visualized outliers using boxplots & histograms
-* Checked skewness/kurtosis
-* Verified linearity assumptions for regression
+2. Outlier & distribution analysis
+* Visualized data distributions using histograms and distplots.
+* Verified linearity assumptions for regression modeling.
 
-### 3. Multicollinearity & correlation
-* Built correlation matrices and pairwise scatterplots
-* Identified relationships between Website/App usage and spending
-* Confirmed moderate correlation between `time_on_app` and `yearly_amount_spent`
+3. Multicollinearity & correlation
+* Built correlation matrices and pairwise scatterplots (`sns.pairplot`).
+* Confirmed a strong relationship between `Length_of_Membership` and `Yearly_Amount_Spent`.
+* Identified a moderate correlation between `Time_on_App` and `Yearly_Amount_Spent`.
 
 ## Exploratory Data Analysis (EDA)
-EDA was performed using `ggplot2`, smoothing functions, and grouped visualizations.
+EDA was performed using `seaborn` and `matplotlib` to visualize relationships and distributions.
 
-### Key questions explored
+### Key questions explored:
 * Do customers spend more time on the website or on the mobile app?
-* Is engagement different across membership duration?
 * Which time variable correlates more strongly with spending?
-* Does the platform usage show linear or nonlinear patterns?
+* What is the relationship between membership duration and yearly amount spent?
 
-### Visualizations produced
-* Boxplots comparing Website vs App time
-* GAM smoothing curves of `Spending ~ Time_on_App` and `Spending ~ Time_on_Website`
-* Scatterplots with trendlines
-* Distribution analysis of key numerical variables
+### Visualizations produced:
+* Jointplots (scatter and hex bin) comparing Website/App time vs. Yearly Amount Spent.
+* Pairwise relationship visualizations across the entire dataset to spot overarching trends.
+* Linear trend plots (`sns.lmplot`) mapping `Yearly_Amount_Spent` against `Length_of_Membership` and `Time_on_App`.
 
 ## EDA Findings
-* Customers spend slightly more time on the mobile app than on the website.
-* Membership duration strongly influences spending behavior.
-* Time on App shows a clearer, more consistent upward trend with spending.
-* Website engagement is flatter and less predictive.
+* `Length_of_Membership` is the strongest predictor of spending behavior.
+* `Time_on_App` shows a clearer, more consistent upward linear trend with spending.
+* `Time_on_Website` engagement is much flatter and shows almost no correlation with yearly spending.
 
 ## Modeling & Statistical Analysis
 The predictive modeling phase was implemented using Python's scikit-learn to build, train, and evaluate a Multiple Linear Regression model.
@@ -84,9 +79,9 @@ The predictive modeling phase was implemented using Python's scikit-learn to bui
 * The model achieved a very high R² score (approx. 98%), confirming that the selected features (especially `Time_on_App` and `Length_of_Membership`) reliably and accurately explain the variance in customer spending.
 
 ## Final Conclusion
-Across all analyses — EDA, hypothesis testing, linear regression, GAM, and cross-validation:
+Across all analyses — Exploratory Data Analysis and Multiple Linear Regression:
 
-**Time spent on the Mobile App is a significantly stronger driver of Yearly Amount Spent than time on the Website.**
+**Time spent on the Mobile App is a significantly stronger driver of Yearly Amount Spent than time on the Website**. (Holding all other features fixed, a 1-unit increase in Time on App is associated with an increase of **$38.59**, compared to only **$0.19** for Time on Website).
 
 ## Business Recommendation
 * Prioritize mobile app development, including UI/UX enhancements and engagement features.
